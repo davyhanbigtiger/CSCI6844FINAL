@@ -1,0 +1,72 @@
+@page "/customers"
+@inject BlazorFrontend.Services.ApiService Api
+
+<h3>👤 Customers</h3>
+
+@if (customers == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (customers.Count == 0)
+{
+    <p class="text-muted">No customers found.</p>
+}
+else
+{
+    <table class="table table-striped table-bordered mt-3">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var c in customers)
+            {
+                <tr>
+                    <td>@c.Id</td>
+                    <td>@c.Name</td>
+                    <td>@c.Email</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<hr />
+<h5>➕ Add New Customer</h5>
+
+<div class="row g-2" style="max-width: 520px">
+    <div class="col-12">
+        <input class="form-control" placeholder="Name" @bind="newCustomer.Name" />
+    </div>
+    <div class="col-12">
+        <input class="form-control" placeholder="Email" @bind="newCustomer.Email" />
+    </div>
+    <div class="col-12">
+        <button class="btn btn-primary" @onclick="HandleAdd">Add Customer</button>
+        @if (!string.IsNullOrEmpty(message))
+        {
+            <span class="ms-3 text-success fw-bold">@message</span>
+        }
+    </div>
+</div>
+
+@code {
+    private List<BlazorFrontend.Models.CustomerDto>? customers;
+    private BlazorFrontend.Models.CustomerDto newCustomer = new();
+    private string message = "";
+
+    protected override async Task OnInitializedAsync()
+        => customers = await Api.GetCustomersAsync();
+
+    private async Task HandleAdd()
+    {
+        if (string.IsNullOrWhiteSpace(newCustomer.Name)) return;
+        await Api.AddCustomerAsync(newCustomer);
+        message = "✅ Customer added!";
+        newCustomer = new();
+        customers = await Api.GetCustomersAsync();
+    }
+}

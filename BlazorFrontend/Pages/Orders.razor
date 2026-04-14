@@ -1,0 +1,86 @@
+@page "/orders"
+@inject BlazorFrontend.Services.ApiService Api
+
+<h3>📦 Orders</h3>
+
+@if (orders == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (orders.Count == 0)
+{
+    <p class="text-muted">No orders found.</p>
+}
+else
+{
+    <table class="table table-striped table-bordered mt-3">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Customer ID</th>
+                <th>Product ID</th>
+                <th>Qty</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var o in orders)
+            {
+                <tr>
+                    <td>@o.Id</td>
+                    <td>@o.CustomerId</td>
+                    <td>@o.ProductId</td>
+                    <td>@o.Quantity</td>
+                    <td>$@o.TotalAmount</td>
+                    <td>@o.Status</td>
+                    <td>@o.CreatedAt.ToShortDateString()</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<hr />
+<h5>➕ Create New Order</h5>
+
+<div class="row g-2" style="max-width: 520px">
+    <div class="col-6">
+        <input class="form-control" placeholder="Customer ID" type="number"
+               @bind="newOrder.CustomerId" />
+    </div>
+    <div class="col-6">
+        <input class="form-control" placeholder="Product ID" type="number"
+               @bind="newOrder.ProductId" />
+    </div>
+    <div class="col-6">
+        <input class="form-control" placeholder="Quantity" type="number"
+               @bind="newOrder.Quantity" />
+    </div>
+    <div class="col-12">
+        <button class="btn btn-success" @onclick="HandleAdd">Create Order</button>
+        @if (!string.IsNullOrEmpty(message))
+        {
+            <span class="ms-3 text-success fw-bold">@message</span>
+        }
+    </div>
+</div>
+
+@code {
+    private List<BlazorFrontend.Models.OrderDto>? orders;
+    private BlazorFrontend.Models.OrderDto newOrder = new();
+    private string message = "";
+
+    protected override async Task OnInitializedAsync()
+        => orders = await Api.GetOrdersAsync();
+
+    private async Task HandleAdd()
+    {
+        if (newOrder.CustomerId == 0 || newOrder.ProductId == 0) return;
+        await Api.AddOrderAsync(newOrder);
+        message = "✅ Order created!";
+        newOrder = new();
+        orders = await Api.GetOrdersAsync();
+    }
+}

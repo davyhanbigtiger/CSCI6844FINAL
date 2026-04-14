@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Json;
 
 namespace OrderService.Api.Services;
 
@@ -16,4 +17,12 @@ public class ProductClient : IProductClient
         var response = await _httpClient.GetAsync($"api/products/{productId}");
         return response.StatusCode == HttpStatusCode.OK;
     }
+
+    public async Task<decimal> GetProductPriceAsync(int productId)
+    {
+        var product = await _httpClient.GetFromJsonAsync<ProductResponse>($"api/products/{productId}");
+        return product?.Price ?? 0;
+    }
+
+    private record ProductResponse(int Id, string Name, string Description, decimal Price, int Stock);
 }
